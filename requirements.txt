@@ -1,0 +1,2 @@
+lettuce==0.2.19
+selenium==2.41.0
