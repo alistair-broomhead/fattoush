@@ -12,20 +12,47 @@ from .sauce import Sauce, Local
 
 class Driver(Remote):
 
+    _registry = {}
+
+    @classmethod
+    def _from(cls, scenario):
+        if scenario.name not in cls._registry:
+            cfg = world.fattoush
+            cls._registry[scenario.name] = cls(cfg, scenario)
+        return cls._registry[scenario.name]
+
+    @classmethod
+    def _scenario(cls, step_or_scenario):
+        if isinstance(step_or_scenario, Step):
+            return step_or_scenario.scenario
+        if isinstance(step_or_scenario, Scenario):
+            return step_or_scenario
+        raise TypeError("{0} is not an instance of {1} or {2}"
+                        .format(step_or_scenario, Step, Scenario))
+
     @classmethod
     def instance(cls, step_or_scenario):
         """
-        :return : Driver
+        :rtype : Driver
         """
-        pass
+        scenario = cls._scenario(step_or_scenario)
+        return cls._from(scenario)
 
     @classmethod
     def has_instance(cls, step_or_scenario):
-        return False
+        try:
+            scenario = cls._scenario(step_or_scenario)
+        except TypeError:
+            return False
+        else:
+            return scenario.name in cls._registry
 
     @classmethod
     def kill_instance(cls, scenario):
-        cls.instance(scenario).quit()
+        if scenario.name not in cls._registry:
+            return
+        instance = cls._registry.pop(scenario.name)
+        instance.quit()
 
     def __init__(self, config, scenario):
         """
@@ -37,6 +64,8 @@ class Driver(Remote):
         super(Driver, self).__init__(config.command_executor,
                                      config.desired_capabilities(
                                          scenario))
+
+        #self.start_session(config.desired_capabilities)
 
         kwargs = dict(config=config,
                       browser=self)

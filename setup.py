@@ -41,6 +41,8 @@ setup(
     author_email='alistair.broomhead@mindcandy.com',
     description="A delicious testing framework",
     license='MIT',
+    #url='https://github.com/mindcandy/fattoush',
+    #download_url='https://github.com/mindcandy/fattoush/zipball/master',
     long_description=LONG_DESCRIPTION,
     packages=find_packages('src'),
     package_dir={'': 'src'},
