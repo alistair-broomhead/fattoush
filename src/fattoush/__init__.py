@@ -36,3 +36,4 @@ instance.
 # easier to replace them at some future point.
 #noinspection PyUnresolvedReferences
 from lettuce import step, world
+from .driver import Driver
