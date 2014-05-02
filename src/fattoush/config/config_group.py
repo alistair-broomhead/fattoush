@@ -16,6 +16,10 @@ class FattoushConfigGroup(object):
     def config_from_file(absolute_file_path):
         return {}
 
+    @classmethod
+    def from_cli_args(cls):
+        return
+    
     @property
     def to_dict(self):
         """
