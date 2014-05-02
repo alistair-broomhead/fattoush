@@ -11,7 +11,7 @@ from lettuce import world
 from ..runner.parsing import parse_args
 import urlparse
 from jsonschema import validate
-from fattoush.config import FattoushConfig
+from .config import FattoushConfig
 
 
 class FattoushConfigGroup(object):

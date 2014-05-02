@@ -1,0 +1,18 @@
+{
+    "server": {
+        "user": "USERNAME",
+        "key": "API_KEY"
+    },
+    "browsers": [
+        {
+            "description": [
+                "Run against chrome 32, on a Mac, in saucelabs,",
+                " at 1280x1024"],
+            "platform": "MAC",
+            "browser": "googlechrome",
+            "chromedriver-version": "2.9",
+            "version": "32",
+            "screen-resolution": "1280x1024"
+        }
+    ]
+}

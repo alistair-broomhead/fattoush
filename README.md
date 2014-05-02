@@ -40,7 +40,5 @@ The hooks module simply uses `lettuce.before` and `lettuce.after` to set up `let
 Possible Future Work
 --------------------
 
- - Test runner (not yet implemented)
- - Hooks (not yet implemented)
  - Driver (not yet implemented)
  - Page abstract class
