@@ -2,8 +2,10 @@
 I need to work out what this needs to be.
 """
 from abc import ABCMeta, abstractmethod
+import base64
 import hmac
 import json
+import urllib2
 
 
 class SauceInterface(object):
@@ -109,7 +111,41 @@ class Local(AbstractSauceBase):
 
 
 class Sauce(AbstractSauceBase):
+    def __init__(self, config, browser):
+
+        self.user = config.server["user"]
+        self.key = config.server["key"]
+
+        self._url_ = "http://saucelabs.com/{0}"
+
+        super(Sauce, self).__init__(config, browser)
+
+        self.session_text = self.session_text_template.format(
+            self.job_id, self.session_name)
+
+        self.b64_key = base64.encodestring(self.combined_key)[:-1]
+
+        self.default_headers["Authorization"] = "Basic {0}".format(
+            self.b64_key)
+
+        print self.session_text
+        print self.public_url
+
+    def _url(self, endpoint):
+        return self._url_.format(endpoint.lstrip('/'))
+
+    def _headers(self, extra_headers):
+        headers = self.default_headers.copy()
+        if extra_headers is not None:
+            headers.update(extra_headers)
+
+        return headers
+
     def request(self, endpoint, method='GET', body=None,
                 extra_headers=None):
-        return super(Sauce, self).request(endpoint, method, body,
-                                          extra_headers)
+        request = urllib2.Request(url=self._url(endpoint),
+                                  data=body,
+                                  headers=self._headers(extra_headers))
+        request.get_method = lambda: method
+
+        return urllib2.urlopen(request)

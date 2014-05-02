@@ -39,7 +39,6 @@ The hooks module simply uses `lettuce.before` and `lettuce.after` to set up `let
 
 Possible Future Work
 --------------------
- - Sauce/Local
  - Page abstract class
  - More hooks
  - More parallel options (per feature or per scenario)

@@ -37,3 +37,4 @@ instance.
 #noinspection PyUnresolvedReferences
 from lettuce import step, world
 from .driver import Driver
+from .config import VERSION
