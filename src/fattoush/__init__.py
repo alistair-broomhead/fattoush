@@ -30,6 +30,12 @@ You will now find that in each step you are able to add
 This returns a subclass of WebDriver with a class method `instance()`
 which takes the current step or feature and returns the active WebDriver
 instance.
+
+License
+-------
+(c) 2014 Mind Candy Ltd. All Rights Reserved.
+Licensed under the MIT License; you may not use this file except in compliance with the License.
+You may obtain a copy of the License at http://opensource.org/licenses/MIT.
 """
 
 # Bringing the step and world names into this namespace makes it

@@ -1,5 +1,9 @@
+# (c) 2014 Mind Candy Ltd. All Rights Reserved.
+# Licensed under the MIT License; you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://opensource.org/licenses/MIT.
+
 """
-I need to work out what this needs to be.
+Interface between Sacue Labs and lettuce driver
 """
 from abc import ABCMeta, abstractmethod
 import base64
@@ -101,6 +105,9 @@ class AbstractSauceBase(SauceInterface):
 
 
 class Local(AbstractSauceBase):
+    """
+    Local Interface for testing
+    """
     def request(self, endpoint, method='GET', body=None,
                 extra_headers=None):
         print ("Would [{0}]{1} with body of {2} (extra-headers={3})"
@@ -111,6 +118,9 @@ class Local(AbstractSauceBase):
 
 
 class Sauce(AbstractSauceBase):
+    """
+    Connect to real Saucelabs infrastructure
+    """
     def __init__(self, config, browser):
 
         self.user = config.server["user"]
