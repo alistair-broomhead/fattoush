@@ -147,14 +147,11 @@ class FattoushConfig(object):
             "iphone": DesiredCapabilities.IPHONE
         }
 
-    def desired_capabilities(self, scenario):
-        """
-        :param scenario: Scenario
-        """
+    def desired_capabilities(self, name):
 
         desired = self.browser.copy()
         browser = desired.pop("browser")
-        desired["name"] = scenario.name
+        desired["name"] = name
 
         try:
             capabilities = self.browser_lookup[browser]

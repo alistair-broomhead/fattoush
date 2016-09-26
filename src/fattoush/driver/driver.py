@@ -10,27 +10,26 @@ the active WebDriver instance.
 
 from selenium.webdriver import Remote
 from lettuce.core import Step, Scenario
-from .. import world
+from lettuce import world
 from .sauce import Sauce, Local
 
 
 class Driver(Remote):
 
-    _registry = {}
-
-    @classmethod
-    def _from(cls, scenario):
-        if scenario.name not in cls._registry:
-            cfg = world.fattoush
-            cls._registry[scenario.name] = cls(cfg, scenario)
-        return cls._registry[scenario.name]
-
     @classmethod
     def _scenario(cls, step_or_scenario):
-        if isinstance(step_or_scenario, Step):
-            return step_or_scenario.scenario
         if isinstance(step_or_scenario, Scenario):
-            return step_or_scenario
+            return step_or_scenario.name
+
+        if isinstance(step_or_scenario, Step):
+            step = step_or_scenario
+
+            if getattr(step, 'scenario', None) is not None:
+                return step.scenario.name
+
+            if getattr(step, 'background', None) is not None:
+                return repr(step)
+
         raise TypeError("{0} is not an instance of {1} or {2}"
                         .format(step_or_scenario, Step, Scenario))
 
@@ -39,43 +38,40 @@ class Driver(Remote):
         """
         :rtype : Driver
         """
-        scenario = cls._scenario(step_or_scenario)
-        return cls._from(scenario)
+
+        if 'browser' not in world.per_scenario:
+            world.per_scenario['browser'] = cls(
+                world.fattoush,
+                cls._scenario(step_or_scenario),
+            )
+
+        return world.per_scenario['browser']
 
     @classmethod
-    def has_instance(cls, step_or_scenario):
-        try:
-            scenario = cls._scenario(step_or_scenario)
-        except TypeError:
-            return False
-        else:
-            return scenario.name in cls._registry
+    def got_instance(cls):
+        return 'browser' in world.per_scenario
 
     @classmethod
-    def kill_instance(cls, scenario):
-        if scenario.name not in cls._registry:
-            return
-        instance = cls._registry.pop(scenario.name)
-        instance.quit()
+    def kill_instance(cls):
+        browser = world.per_scenario.pop('browser', None)
 
-    def __init__(self, config, scenario):
+        if browser is not None:
+            browser.quit()
+
+    def __init__(self, config, name):
         """
         :param config: fattoush.config.FattoushConfig
         :param scenario: Scenario
         """
         self.fattoush_config = config
 
-        super(Driver, self).__init__(config.command_executor,
-                                     config.desired_capabilities(
-                                         scenario))
-
-        #self.start_session(config.desired_capabilities)
-
-        kwargs = dict(config=config,
-                      browser=self)
+        super(Driver, self).__init__(
+            config.command_executor,
+            config.desired_capabilities(name),
+        )
 
         # For saucelabs you need a user name and an auth key
-        if "user" in config.server:
-            self.sauce = Sauce(**kwargs)
-        else:
-            self.sauce = Local(**kwargs)
+        self.is_sauce = "user" in config.server
+
+        cls = Sauce if self.is_sauce else Local
+        self.sauce = cls(config=config, browser=self)

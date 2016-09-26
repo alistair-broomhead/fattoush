@@ -6,7 +6,12 @@
 Hooks that run before and after scenarios
 """
 
-from lettuce import before, after
+from lettuce import after, before, world
+
+
+@before.each_scenario
+def set_per_scenario(_):
+    world.per_scenario = {}
 
 
 @before.each_scenario
@@ -14,11 +19,12 @@ def hook_rename_scenario(scenario):
     feature = scenario.feature
     scenario.name = "{0}.{1}".format(feature.name, scenario.name)
 
+
 @after.each_scenario
-def hook_destroy_sauce_connection(scenario):
-    """
-    Quits any sauce session in progress and removes the connection
-    manager object from the world object namespace.
-    """
-    from .. import Driver
-    Driver.kill_instance(scenario)
+def clear_per_scenario(_):
+
+    browser = world.per_scenario.get('browser')
+    if browser is not None:
+        browser.quit()
+
+    del world.per_scenario
