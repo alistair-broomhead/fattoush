@@ -15,16 +15,27 @@ def set_per_scenario(_):
 
 
 @before.each_scenario
-def hook_rename_scenario(scenario):
+def hook_rename_scenario(scenario, *_):
     feature = scenario.feature
     scenario.name = "{0}.{1}".format(feature.name, scenario.name)
 
 
-@after.each_scenario
-def clear_per_scenario(_):
+def clear_browser_etc():
 
     browser = world.per_scenario.get('browser')
     if browser is not None:
+        browser.delete_all_cookies()
         browser.quit()
 
     del world.per_scenario
+
+
+@after.each_scenario
+def clear_per_scenario(*_):
+    clear_browser_etc()
+
+
+@after.outline
+def clear_per_iteration(*_):
+    clear_browser_etc()
+    world.per_scenario = {}
