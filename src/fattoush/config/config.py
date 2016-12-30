@@ -14,6 +14,34 @@ from selenium.webdriver import DesiredCapabilities
 
 
 class FattoushConfig(object):
+    desired = {}
+
+    for cap_name in dir(DesiredCapabilities):
+        if cap_name.startswith('_'):
+            continue
+
+        cap = getattr(DesiredCapabilities, cap_name)
+
+        if not isinstance(cap, dict):
+            continue
+
+        browser_name = cap.get("browserName")
+
+        if browser_name is None:
+            continue
+
+        cap_name_lower = cap_name.lower()
+
+        if browser_name.lower() == cap_name_lower:
+            desired[browser_name] = cap
+        elif cap_name_lower not in desired:
+            desired[cap_name_lower] = cap
+
+    desired.update({
+        "googlechrome": DesiredCapabilities.CHROME,
+        "phantom": DesiredCapabilities.PHANTOMJS,
+        "iexploreproxy": DesiredCapabilities.INTERNETEXPLORER,
+    })
 
     def _augment_xunit_filename(self):
         index = self.index
@@ -137,15 +165,7 @@ class FattoushConfig(object):
 
     @property
     def browser_lookup(self):
-        return {
-            "android": DesiredCapabilities.ANDROID,
-            "googlechrome": DesiredCapabilities.CHROME,
-            "firefox": DesiredCapabilities.FIREFOX,
-            "phantom": DesiredCapabilities.PHANTOMJS,
-            "htmlunit": DesiredCapabilities.HTMLUNIT,
-            "iexploreproxy": DesiredCapabilities.INTERNETEXPLORER,
-            "iphone": DesiredCapabilities.IPHONE
-        }
+        return self.desired.copy()
 
     def desired_capabilities(self, name):
 

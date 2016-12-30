@@ -1,7 +1,3 @@
-# (c) 2014 Mind Candy Ltd. All Rights Reserved.
-# Licensed under the MIT License; you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://opensource.org/licenses/MIT.
-
 """
 Functions and classes for taking commandline arguments and forming an
 object which will give you a set of FattoushConfig objects, each of
@@ -19,6 +15,110 @@ from .config import FattoushConfig
 
 
 class FattoushConfigGroup(object):
+
+    schema = {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "schema for a single file fattoush config",
+
+        "type": "object",
+        "required": ["browsers"],
+        "properties": {
+            "description": {"$ref": "#/definitions/comment"},
+            "server": {
+                "anyOf": [
+                    {"$ref": "#/definitions/saucelabs"},
+                    {"$ref": "#/definitions/local"}
+                ]
+            },
+            "browsers": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"$ref": "#/definitions/browser"},
+                "uniqueItems": True
+            }
+        },
+        "definitions": {
+            "comment": {
+                "description":
+                    "Not used anywhere, just a comment, has no validation, "
+                    "so you can store anything, intended to allow strings, "
+                    "and lists of strings, in order to facilitate multi-line "
+                    "comments, but could take an object with all sorts "
+                    "of meta-data... Please don't abuse."
+            },
+            "saucelabs": {
+                "description": "Specification of how to connect to saucelabs",
+                "properties": {
+                    "description": {"$ref": "#/definitions/comment"},
+                    "url": {
+                        "description":
+                            "The initial URL to load when the test begins",
+                        "type": "string"
+                    },
+                    "user": {
+                        "description":
+                            "The user name used to invoke Sauce OnDemand",
+                        "type": "string"
+                    },
+                    "key": {
+                        "description":
+                            "The access key for the user used to invoke "
+                            "Sauce OnDemand",
+                        "type": "string"
+                    }
+                },
+                "required": ["user", "key"],
+                "additionalProperties": False
+            },
+            "local": {
+                "description":
+                    "Specification of how to connect to a selenium server on "
+                    "your local network. Defaults to 127.0.0.1:4444",
+                "properties": {
+                    "description": {"$ref": "#/definitions/comment"},
+                    "host": {
+                        "description": "The hostname of the Selenium server",
+                        "type": "string"
+                    },
+                    "port": {
+                        "description": "The port of the Selenium server",
+                        "type": "string"
+                    },
+                    "url": {
+                        "description":
+                            "The initial URL to load when the test begins",
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": False
+            },
+            "browser": {
+                "description":
+                    "Specification of the desired capabilities to "
+                    "give webdriver",
+                "type": "object",
+                "properties": {
+                    "description": {"$ref": "#/definitions/comment"},
+                    "platform": {"type": "string"},
+                    "os": {"type": "string"},
+                    "browser": {
+                        "type": "string",
+                        "enum": list(FattoushConfig.desired.keys()),
+                    },
+                    "url": {
+                        "type": "string",
+                        "description":
+                            "Contains the operating system, version and "
+                            "browser name of the selected browser, in a "
+                            "format designed for use by the Selenium "
+                            "Client Factory"
+                    },
+                    "browser-version": {"type": "string"}
+                },
+                "required": ["browser"]
+            }
+        }
+    }
 
     @staticmethod
     def config_from_env():
@@ -117,12 +217,8 @@ class FattoushConfigGroup(object):
 
         :param options: Namespace
         """
-        schema_file_name = path.join(path.dirname(__file__),
-                                     'file_input_schema.json')
-
         if options.print_schema:
-            with open(schema_file_name) as example:
-                print example.read()
+            print(json.dumps(self.schema, indent=2, sort_keys=True))
             exit(0)
         elif options.print_config:
             file_name = path.join(path.dirname(__file__),
@@ -139,8 +235,7 @@ class FattoushConfigGroup(object):
         else:
             self.configs = self.config_from_file(options.config)
 
-        schema = json.load(open(schema_file_name))
-        validate(self.configs, schema)
+        validate(self.configs, self.schema)
 
         xunit_filename = ('lettucetests.xml'
                           if options.enable_xunit
