@@ -18,17 +18,20 @@ def i_expect_the_url_to_become_url(step, url):
     tools.assert_equal(wd.current_url[:len(url)], url)
 
 
+def _send_to_search_box(wd, keys):
+    search_box = wd.find_element_by_css_selector('form input[title=Search]')
+    search_box.send_keys(keys)
+
+
 @step(u'I type "([^"]*)" into the search box')
 def i_type_search_term_into_the_search_box(step, search_term):
     wd = Driver.instance(step)
-    search_box = wd.find_element_by_id('gbqfq')
-    search_box.send_keys(search_term)
+    _send_to_search_box(wd, search_term)
 
 @step(u'I submit the search')
 def i_submit_the_search(step):
     wd = Driver.instance(step)
-    search_box = wd.find_element_by_id('gbqfq')
-    search_box.send_keys('\n')
+    _send_to_search_box(wd, '\n')
 
 @step(u'I expect the top result to contain the string "([^"]*)"')
 def i_expect_the_top_result_to_contain_the_string_search_term(step,
