@@ -55,6 +55,22 @@ returned is dictated by whether fattoush knows that it is running against saucel
 local selenium server.
 
 
+Development
+-----------
+
+It is recommended to work with this in a virtual environment. To run the tests you will need
+ to fill out your saucelabs credentials in you local checkout of [chrome_sauce_mac.json](test/chrome_sauce_mac.json) (making sure not to commit these changes):
+ 
+    pip install -e .
+    pip install nose
+    
+    fattoush test -c test/chrome_local.json
+    fattoush test -c test/chrome_sauce_mac.json  # If you have credentials to fill out
+
+You may wish to create your own configurations in addition to these, but any pull requests which 
+break the tests with these configurations will be considered to break functionality.
+
+
 License
 -------
 © 2014 Mind Candy Ltd. All Rights Reserved. 
