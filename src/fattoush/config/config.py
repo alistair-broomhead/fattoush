@@ -112,9 +112,9 @@ class FattoushConfig(object):
         self._augment_server()
 
         self._augment_browser()
-        self.name = ";".join(('='.join(item) for item in
-                              sorted(self.browser.items())
-                              if item[0] != "description"))
+        self.name = _create_name_from_capabilities(self.browser, surround=False)
+
+
 
     @property
     def command_executor(self):
@@ -180,3 +180,43 @@ class FattoushConfig(object):
 
         capabilities.update(desired)
         return capabilities
+
+
+def _create_name_from_capabilities(caps, surround=True):
+    if isinstance(caps, (str, unicode)):
+        return caps
+
+    if hasattr(caps, 'iteritems'):
+        return _do_join(
+            parts=_mapping_to_name_parts(caps),
+            surround=surround
+        )
+    elif hasattr(caps, '__iter__'):
+        return _do_join(
+            parts=_iterable_to_name_parts(caps),
+            surround=surround
+        )
+
+    return repr(caps)
+
+
+def _mapping_to_name_parts(caps):
+    for key, value in sorted(caps.items()):
+        if key == 'description':
+            continue
+
+        yield '='.join((key, _create_name_from_capabilities(value)))
+
+
+def _iterable_to_name_parts(caps):
+    for value in caps:
+        yield _create_name_from_capabilities(value)
+
+
+def _do_join(parts, surround, with_=';'):
+    whole = with_.join(parts)
+
+    if surround:
+        whole = '{{{}}}'.format(whole)
+
+    return whole
