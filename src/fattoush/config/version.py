@@ -1,1 +1,3 @@
-VERSION = '0.3.5'
+import packaging.version
+
+VERSION = packaging.version.Version("0.4.0.dev0")

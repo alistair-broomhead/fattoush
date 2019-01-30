@@ -31,10 +31,10 @@ class FattoushConfigGroup(object):
                 ]
             },
             "browsers": {
-                "type": "array",
-                "minItems": 1,
-                "items": {"$ref": "#/definitions/browser"},
-                "uniqueItems": True
+                "anyOf": [
+                    {"$ref": "#/definitions/browsers"},
+                    {"$ref": "#/definitions/browsers-pre-0.4"}
+                ]
             }
         },
         "definitions": {
@@ -92,7 +92,37 @@ class FattoushConfigGroup(object):
                 },
                 "additionalProperties": False
             },
-            "browser": {
+            "browsers-pre-0.4": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"$ref": "#/definitions/capabilities"},
+                "uniqueItems": True,
+            },
+            "browsers": {
+                "description":
+                    "Specification of the browsers to ask webdriver to open",
+                "type": "object",
+                "properties": {
+                    "capabilities": {
+                        "description":
+                            "Keyed lookup of desired capabilities",
+                        "type": "object",
+                        "additionalProperties": {"$ref": "#/definitions/capabilities"},
+                    },
+                    "options": {
+                        "description":
+                            "Keyed lookup of browser options",
+                        "type": "object",
+                        "additionalProperties": {"$ref": "#/definitions/options"},
+                    },
+                    "selection": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/browser"},
+                    },
+                },
+                "required": ["selection"],
+            },
+            "capabilities": {
                 "description":
                     "Specification of the desired capabilities to "
                     "give webdriver",
@@ -116,7 +146,33 @@ class FattoushConfigGroup(object):
                     "browser-version": {"type": "string"}
                 },
                 "required": ["browser"]
-            }
+            },
+            "options": {
+                "description":
+                    "Specification of the browser options to give webdriver",
+                "type": "array",
+                "items": {"type": "string"},
+            },
+            "browser": {
+                "description":
+                    "Specification of a browsers to ask webdriver to open",
+                "type": "object",
+                "properties": {
+                    "description": {"$ref": "#/definitions/comment"},
+                    "capabilities": {
+                        "anyOf": [
+                            {"$ref": "#/definitions/capabilities"},
+                            {"type": "string", "description": "Key within capabilities"},
+                        ]
+                    },
+                    "options": {
+                        "anyOf": [
+                            {"$ref": "#/definitions/options"},
+                            {"type": "string", "description": "Key within options"},
+                        ]
+                    },
+                },
+            },
         }
     }
 
