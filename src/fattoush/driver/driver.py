@@ -68,6 +68,7 @@ class Driver(Remote):
         super(Driver, self).__init__(
             config.command_executor,
             config.desired_capabilities(name),
+            options=config.options(),
         )
 
         # For saucelabs you need a user name and an auth key

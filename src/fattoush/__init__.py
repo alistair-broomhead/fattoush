@@ -40,19 +40,24 @@ You may obtain a copy of the License at http://opensource.org/licenses/MIT.
 
 # Bringing the step and world names into this namespace makes it
 # easier to replace them at some future point.
-#noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences
 from lettuce import step as step_, world
 
-from .driver import Driver
-from .config import VERSION
-from . import decorators
+import fattoush.decorators.step
+
+from fattoush.config import VERSION
+from fattoush.driver import Driver
+from fattoush.util import (
+    retry,
+    with_wd_from_step,
+)
 
 
 def step(regex):
     define = step_(regex)
 
     def _inner(fn):
-        decorated = decorators.step.screenshot(fn)
+        decorated = fattoush.decorators.step.screenshot(fn)
         return define(decorated)
 
     return _inner

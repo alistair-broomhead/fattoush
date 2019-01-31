@@ -1,7 +1,3 @@
-# (c) 2014 Mind Candy Ltd. All Rights Reserved.
-# Licensed under the MIT License; you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at http://opensource.org/licenses/MIT.
-
 """
 Functions for putting together sauce configuration,
 be it from environmental variables or from a JSON string.
@@ -39,6 +35,17 @@ class FattoushConfig(object):
         "phantom": selenium.webdriver.DesiredCapabilities.PHANTOMJS,
         "iexploreproxy": selenium.webdriver.DesiredCapabilities.INTERNETEXPLORER,
     })
+
+    @fattoush.util.flatmap(selenium.webdriver, to_cls=dict)
+    def _options(_, cls):
+        try:
+            if cls.__name__ == 'Options':
+                option = cls()
+
+                yield option.capabilities["browserName"], cls
+        except (NameError, KeyError):
+            pass
+
 
     def _augment_xunit_filename(self):
         index = self.index
@@ -183,6 +190,20 @@ class FattoushConfig(object):
         capabilities["name"] = name
 
         return capabilities
+
+    def options(self):
+        browser_name = self.base_capabilities["browserName"]
+
+        cls = self._options.get(browser_name)
+
+        if cls is not None:
+
+            browser_options = cls()
+
+            for option in self.browser['options']:
+                browser_options.add_argument(option)
+
+            return browser_options
 
 
 def _create_name_from_capabilities(caps, surround=True):
