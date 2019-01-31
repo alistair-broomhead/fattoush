@@ -4,14 +4,20 @@ object which will give you a set of FattoushConfig objects, each of
 which contains all the information necessary to run lettuce against a
 specified webdriver configuration, whither in saucelabs or local.
 """
+import copy
 import json
-from multiprocessing import Process
-from os import environ, path
-from lettuce import world
-from ..runner.parsing import parse_args
 import urlparse
+import multiprocessing
+
+from os import environ, path
+
 from jsonschema import validate
-from .config import FattoushConfig
+from lettuce import world
+
+from fattoush import util
+from fattoush.config import deprecated
+from fattoush.config import config
+from fattoush.runner.parsing import parse_args
 
 
 class FattoushConfigGroup(object):
@@ -107,13 +113,17 @@ class FattoushConfigGroup(object):
                         "description":
                             "Keyed lookup of desired capabilities",
                         "type": "object",
-                        "additionalProperties": {"$ref": "#/definitions/capabilities"},
+                        "additionalProperties": {
+                            "$ref": "#/definitions/capabilities",
+                        },
                     },
                     "options": {
                         "description":
                             "Keyed lookup of browser options",
                         "type": "object",
-                        "additionalProperties": {"$ref": "#/definitions/options"},
+                        "additionalProperties": {
+                            "$ref": "#/definitions/options",
+                        },
                     },
                     "selection": {
                         "type": "array",
@@ -133,7 +143,7 @@ class FattoushConfigGroup(object):
                     "os": {"type": "string"},
                     "browser": {
                         "type": "string",
-                        "enum": list(FattoushConfig.desired.keys()),
+                        "enum": list(config.FattoushConfig.desired.keys()),
                     },
                     "url": {
                         "type": "string",
@@ -162,13 +172,19 @@ class FattoushConfigGroup(object):
                     "capabilities": {
                         "anyOf": [
                             {"$ref": "#/definitions/capabilities"},
-                            {"type": "string", "description": "Key within capabilities"},
+                            {
+                                "type": "string",
+                                "description": "Key within capabilities",
+                            },
                         ]
                     },
                     "options": {
                         "anyOf": [
                             {"$ref": "#/definitions/options"},
-                            {"type": "string", "description": "Key within options"},
+                            {
+                                "type": "string",
+                                "description": "Key within options",
+                            },
                         ]
                     },
                 },
@@ -293,6 +309,8 @@ class FattoushConfigGroup(object):
 
         validate(self.configs, self.schema)
 
+        self._convert_legacy_config()
+
         xunit_filename = ('lettucetests.xml'
                           if options.enable_xunit
                           and options.xunit_file is None
@@ -310,6 +328,23 @@ class FattoushConfigGroup(object):
             'tags': ([tag.strip('@') for tag in options.tags]
                      if options.tags else None)
         }
+
+    def _convert_legacy_config(self):
+        if isinstance(self.configs['browsers'], list):
+            # Before version 0.4 all capabilities went
+            # straight in the browser objects, since 0.4 this
+            # has become nested to also include options to set
+            # on the remote executor. The pre-0.4 format shall
+            # be deprecated from 0.5 onwards.
+            with deprecated.FromVersion('0.5', 'Legacy browser config format'):
+
+                browsers = self.configs["browsers"]
+
+                self.configs["browsers"] = {
+                    'selection': [
+                        {'capabilities': browser} for browser in browsers
+                    ]
+                }
 
     @property
     def to_dict(self):
@@ -338,25 +373,12 @@ class FattoushConfigGroup(object):
 
         :param self: fattoush.config.FattoushConfigGroup
         """
-        ex = None
-        results = []
-
-        server = self.configs.get("server", {})
-        lettuce = self.lettuce_options
-        browsers = self.configs["browsers"]
-
-        for (index, browser) in enumerate(browsers):
-            try:
-                r = run_single(index=index,
-                               browser=browser.copy(),
-                               server=server.copy(),
-                               lettuce=lettuce.copy())
-                results.append(r)
-            except BaseException as ex:
-                print ex
-        if ex is not None:
-            raise
-        return results
+        return list(
+            util.try_map(
+                _run_kwargs,
+                self._iter_browser_kwargs(),
+            )
+        )
 
     def _run_parallel(self):
         """
@@ -365,23 +387,39 @@ class FattoushConfigGroup(object):
 
         :param self: fattoush.config.FattoushConfigGroup
         """
-        processes = []
+        multiprocessing.Pool().map(
+            _run_kwargs,
+            self._iter_browser_kwargs(),
+        )
 
-        server = self.configs.get("server", {})
-        lettuce = self.lettuce_options
+    def _iter_browser_kwargs(self):
         browsers = self.configs["browsers"]
 
-        for (index, browser) in enumerate(browsers):
-            process = Process(None, run_single,
-                              kwargs=dict(index=index,
-                                          browser=browser,
-                                          server=server,
-                                          lettuce=lettuce))
-            processes.append(process)
-            process.start()
+        kwargs = {
+            'server': self.configs.get("server", {}),
+            'lettuce': self.lettuce_options,
+        }
 
-        for process in processes:
-            process.join()
+        for (index, browser) in enumerate(browsers['selection']):
+
+            kwargs['index'] = index
+
+            caps = browser.setdefault('capabilities', {})
+            if not isinstance(caps, dict):
+                browser['capabilities'] = browsers['capabilities'][caps]
+
+            opts = browser.setdefault('options', [])
+            if not isinstance(opts, list):
+                browser['options'] = browsers['options'][opts]
+
+            kwargs['browser'] = browser
+
+            yield kwargs
+
+
+def _run_kwargs(kwargs):
+    """ This would be a starmap in py3... """
+    return run_single(**copy.deepcopy(kwargs))
 
 
 def run_single(index, browser, server, lettuce):
@@ -392,10 +430,12 @@ def run_single(index, browser, server, lettuce):
     :param lettuce: dict
     """
 
-    fattoush_config = FattoushConfig(index=index,
-                                     browser=browser,
-                                     server=server,
-                                     lettuce=lettuce)
+    fattoush_config = config.FattoushConfig(
+        index=index,
+        browser=browser,
+        server=server,
+        lettuce=lettuce,
+    )
     world.absorb(fattoush_config, 'fattoush')
     try:
         result = fattoush_config.run()

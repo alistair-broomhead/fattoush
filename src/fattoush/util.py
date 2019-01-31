@@ -73,3 +73,16 @@ def filename_in_created_dir(dir_name, step, ext, **kwargs):
         os.makedirs(dir_name)
 
     return os.path.join(dir_name, filename_for_step(step, ext=ext, **kwargs))
+
+
+def try_map(fn, args_iterable):
+    ex = None
+
+    for args in args_iterable:
+        try:
+            yield fn(args)
+        except Exception as ex:
+            print(ex)
+
+    if ex is not None:
+        raise
