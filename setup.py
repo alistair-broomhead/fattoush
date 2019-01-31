@@ -21,7 +21,7 @@ try:
     # place.
     sys.path.insert(0, path.join(path.dirname(__file__), 'src'))
     import fattoush
-    VERSION = fattoush.VERSION
+    VERSION = str(fattoush.VERSION)
     LONG_DESCRIPTION = fattoush.__doc__
 
 except:
