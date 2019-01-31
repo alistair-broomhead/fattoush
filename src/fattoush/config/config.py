@@ -9,38 +9,35 @@ be it from environmental variables or from a JSON string.
 import json
 
 from os import path
-from lettuce import Runner
-from selenium.webdriver import DesiredCapabilities
+
+import lettuce
+import selenium.webdriver
+
+import fattoush.util
 
 
 class FattoushConfig(object):
-    desired = {}
+    _capabilities = None
 
-    for cap_name in dir(DesiredCapabilities):
-        if cap_name.startswith('_'):
-            continue
+    @fattoush.util.flatmap(selenium.webdriver.DesiredCapabilities, to_cls=dict)
+    def desired(cap_name, cap):
+        if isinstance(cap, dict):
+            browser_name = cap.get("browserName")
 
-        cap = getattr(DesiredCapabilities, cap_name)
+            if browser_name is not None:
 
-        if not isinstance(cap, dict):
-            continue
+                cap_name_lower = cap_name.lower()
 
-        browser_name = cap.get("browserName")
+                yield cap_name_lower, cap
 
-        if browser_name is None:
-            continue
-
-        cap_name_lower = cap_name.lower()
-
-        if browser_name.lower() == cap_name_lower:
-            desired[browser_name] = cap
-        elif cap_name_lower not in desired:
-            desired[cap_name_lower] = cap
+                if (cap_name_lower != browser_name and
+                    cap_name_lower == browser_name.lower):
+                    yield browser_name, cap
 
     desired.update({
-        "googlechrome": DesiredCapabilities.CHROME,
-        "phantom": DesiredCapabilities.PHANTOMJS,
-        "iexploreproxy": DesiredCapabilities.INTERNETEXPLORER,
+        "googlechrome": selenium.webdriver.DesiredCapabilities.CHROME,
+        "phantom": selenium.webdriver.DesiredCapabilities.PHANTOMJS,
+        "iexploreproxy": selenium.webdriver.DesiredCapabilities.INTERNETEXPLORER,
     })
 
     def _augment_xunit_filename(self):
@@ -72,7 +69,7 @@ class FattoushConfig(object):
 
     def run(self):
         try:
-            return Runner(**self.run_args).run()
+            return lettuce.Runner(**self.run_args).run()
         except BaseException:
             print "Lettuce raised the following exception:"
             raise
@@ -112,7 +109,10 @@ class FattoushConfig(object):
         self._augment_server()
 
         self._augment_browser()
-        self.name = _create_name_from_capabilities(self.browser, surround=False)
+        self.name = _create_name_from_capabilities(
+            self.browser['capabilities'],
+            surround=False,
+        )
 
 
 
@@ -164,21 +164,24 @@ class FattoushConfig(object):
                              endpoint=endpoint)
 
     @property
-    def browser_lookup(self):
-        return self.desired.copy()
+    def base_capabilities(self):
+        browser_name = self.browser['capabilities']["browser"]
+
+        return self.desired.get(
+            browser_name,
+            selenium.webdriver.DesiredCapabilities.CHROME
+        )
 
     def desired_capabilities(self, name):
+        capabilities = self.base_capabilities.copy()
 
-        desired = self.browser.copy()
-        browser = desired.pop("browser")
-        desired["name"] = name
+        capabilities.update({
+            k: v for k, v in self.browser['capabilities'].items()
+            if k != "browser"
+        })
 
-        try:
-            capabilities = self.browser_lookup[browser]
-        except KeyError:
-            capabilities = DesiredCapabilities.CHROME
+        capabilities["name"] = name
 
-        capabilities.update(desired)
         return capabilities
 
 

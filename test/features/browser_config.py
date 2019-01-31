@@ -20,7 +20,9 @@ def when_fattoush_creates_a_configurations_from_this(step):
 
     world.per_scenario['config'] = FattoushConfig(
         index=None,
-        browser=capabilities,
+        browser={
+            'capabilities': capabilities
+        },
         server={},
         lettuce=mock.MagicMock(),
     )

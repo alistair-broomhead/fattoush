@@ -86,3 +86,38 @@ def try_map(fn, args_iterable):
 
     if ex is not None:
         raise
+
+
+
+def _attrs(obj, include_private=False):
+    """ Iterate over a namespace as name-value pairs """
+    for name in dir(obj):
+        if name.startswith('_') and not include_private:
+            continue
+
+        yield name, getattr(obj, name)
+
+
+def flatmap(obj, to_cls=None):
+    """
+    Flatmap a decorated function over a namespace
+
+    In the absense of `to_cls` this creates a generator. With
+    `to_cls` that generator will be exhausted into an instance
+    of that class.
+
+    This is useful for creating say a dictionary within a
+    class' namespace without poluting it with extra mess
+    """
+    def iter_(fn):
+        for name, value in _attrs(obj):
+            for item in fn(name, value):
+                yield item
+
+    if to_cls is None:
+        return iter_
+
+    def do(fn):
+        return to_cls(iter_(fn))
+
+    return do
