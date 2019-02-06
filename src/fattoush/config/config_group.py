@@ -15,6 +15,7 @@ from jsonschema import validate
 from lettuce import world
 
 from fattoush import util
+from fattoush import namespace
 from fattoush.config import deprecated
 from fattoush.config import config
 from fattoush.runner.parsing import parse_args
@@ -436,9 +437,10 @@ def run_single(index, browser, server, lettuce):
         server=server,
         lettuce=lettuce,
     )
-    world.absorb(fattoush_config, 'fattoush')
+    namespace.config = fattoush_config
+
     try:
         result = fattoush_config.run()
         return result
     finally:
-        world.spew('fattoush')
+        namespace.config = None

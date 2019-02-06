@@ -2,13 +2,16 @@
 Hooks that run before and after steps
 """
 import functools
+
 from lettuce import world, before, after
+
+from fattoush.namespace import per
 
 
 def if_browser(fn):
     @functools.wraps(fn)
     def _inner(step, *args, **kwargs):
-        browser = world.per_scenario.get('browser')
+        browser = per.scenario.get('browser')
 
         if browser is not None:
             fn(step, *args, **kwargs)
@@ -29,4 +32,4 @@ def if_scenario(fn):
 @if_browser
 def hook_mark_failures(step):
     if step.failed:
-        world.per_scenario['browser'].sauce.fail_session()
+        per.scenario['browser'].sauce.fail_session()

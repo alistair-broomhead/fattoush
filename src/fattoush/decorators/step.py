@@ -1,19 +1,61 @@
 import contextlib
-import functools
 import logging
 import sys
 import time
 
+import lettuce
+
 from selenium.common.exceptions import WebDriverException
 
-from fattoush import world
+
+from fattoush.driver.driver import Driver
 from fattoush.util import filename_in_created_dir
+from fattoush.namespace import per
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 HANDLER = logging.StreamHandler()
 HANDLER.setLevel(logging.INFO)
 LOGGER.addHandler(HANDLER)
+
+
+class Decorated(object):
+    def __init__(self, fn, decorators):
+        self.fn = fn
+        self.func_code = fn.func_code
+        self.decorators = decorators
+
+    def __call__(self, *args, **kwargs):
+        head, tail = self.decorators[0], self.decorators[1:]
+        fn, args, kwargs = head(self.fn, *args, **kwargs)
+
+        if tail:
+            return self.__class__(fn, tail)(*args, **kwargs)
+
+        return fn(*args, **kwargs)
+
+
+class Step(object):
+    def __init__(self, *decorated):
+        self._decorated = decorated
+
+    def decorator(self, fn, step_regex):
+        step = lettuce.step(step_regex)
+        decorated = Decorated(fn, self._decorated)
+
+        return step(decorated)
+
+    def __call__(self, step_regex):
+
+        def decorator(fn):
+            return self.decorator(fn, step_regex)
+
+        return decorator
+
+    def then(self, decorated):
+        chain = self._decorated + (decorated, )
+
+        return self.__class__(*chain)
 
 
 @contextlib.contextmanager
@@ -31,7 +73,7 @@ def _screenshot_after(step):
 
         time.sleep(1)
 
-        browser = world.per_scenario.get('browser')
+        browser = per.scenario.get('browser')
 
         if browser is not None:
             try:
@@ -50,7 +92,7 @@ def _screenshot_after(step):
 
         raise exc_type, exc_value, exc_tb
     else:
-        browser = world.per_scenario.get('browser')
+        browser = per.scenario.get('browser')
         if browser is None:
             return
 
@@ -63,9 +105,24 @@ def _screenshot_after(step):
             pass
 
 
-def screenshot(fn):
-    @functools.wraps(fn)
-    def _inner(step, *args, **kwargs):
-        with _screenshot_after(step):
-            return fn(step, *args, **kwargs)
-    return _inner
+@Step
+def without_step(definition, _, *args, **kwargs):
+    return definition, args, kwargs
+
+
+@Step
+def screenshot(definition, step, *args, **kwargs):
+    with _screenshot_after(step):
+        return definition, (step, ) + args, kwargs
+
+
+@screenshot.then
+def with_wd(definition, step, *args, **kwargs):
+    wd = Driver.instance(step)
+
+    return definition, (step, wd) + args, kwargs
+
+
+@with_wd.then
+def just_wd(definition, _, *args, **kwargs):
+    return definition, args, kwargs

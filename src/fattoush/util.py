@@ -3,8 +3,6 @@ import functools
 import os.path
 import time
 
-import fattoush
-
 LOGFILE_NAME_TEMPLATE = (
     "{datetime:%Y%m%d_%H%M%S.%f}{parent_name} - {sentence}.{ext}"
 )
@@ -111,30 +109,6 @@ def retry(times=1, wait=0, catch=Exception):
         return _inner
 
     return decorator
-
-
-def with_wd_from_step(keep_step=False):
-    """
-    Gets the WebDriver instance for the current step
-
-    If `keep_step` is True the webdriver instance will be
-    inserted after the step, otherwise it replaces the step
-    (a lot of the time a test step will only be interacting
-    with the browser)
-    """
-    def decorator(fn):
-        @functools.wraps(fn)
-        def _inner(step, *args,**kwargs):
-            wd = fattoush.Driver.instance(step)
-
-            pre_args = (step, wd) if keep_step else (wd, )
-            full_args = pre_args + args
-
-            return fn(*full_args, **kwargs)
-
-        return _inner
-    return decorator
-
 
 
 def _attrs(obj, include_private=False):

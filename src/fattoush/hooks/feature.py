@@ -6,7 +6,9 @@
 Hooks that run before and after features
 """
 
-from lettuce import world, before
+from lettuce import before
+
+from fattoush import namespace
 
 
 @before.each_feature
@@ -17,5 +19,5 @@ def hook_before_feature(feature):
     having this information makes it easier to see where any
     unexpected behaviour may have occurred.
     """
-    config = world.fattoush
+    config = namespace.config
     feature.name = "[{0}] {1}".format(config.name, feature.name)

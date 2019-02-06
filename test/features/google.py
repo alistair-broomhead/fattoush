@@ -5,7 +5,7 @@
 
 from fattoush import (
     util,
-    step,
+    step_just_wd,
 )
 
 
@@ -14,14 +14,12 @@ def _send_to_search_box(wd, keys):
     search_box.send_keys(keys)
 
 
-@step(u'I open "([^"]*)" in my web browser')
-@util.with_wd_from_step()
+@step_just_wd(u'I open "([^"]*)" in my web browser')
 def i_open_url_in_my_web_browser(wd, url):
     wd.get(url)
 
 
-@step(u'I expect the url to start with "([^"]*)"')
-@util.with_wd_from_step()
+@step_just_wd(u'I expect the url to start with "([^"]*)"')
 def i_expect_the_url_to_start_with(wd, url):
     current_url = wd.current_url
 
@@ -30,20 +28,17 @@ def i_expect_the_url_to_start_with(wd, url):
     )
 
 
-@step(u'I type "([^"]*)" into the search box')
-@util.with_wd_from_step()
+@step_just_wd(u'I type "([^"]*)" into the search box')
 def i_type_search_term_into_the_search_box(wd, search_term):
     _send_to_search_box(wd, search_term)
 
 
-@step(u'I submit the search')
-@util.with_wd_from_step()
+@step_just_wd(u'I submit the search')
 def i_submit_the_search(wd):
     _send_to_search_box(wd, '\n')
 
 
-@step(u'I expect the top result to contain the string "([^"]*)"')
-@util.with_wd_from_step()
+@step_just_wd(u'I expect the top result to contain the string "([^"]*)"')
 def i_expect_the_top_result_to_contain_the_string_search_term(
     wd,
     search_term,

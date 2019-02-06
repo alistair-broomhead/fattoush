@@ -5,13 +5,14 @@
 """
 Hooks that run before and after scenarios
 """
+from fattoush.namespace import per
 
 from lettuce import after, before, world
 
 
 @before.each_scenario
 def set_per_scenario(_):
-    world.per_scenario = {}
+    per.scenario = {}
 
 
 @before.each_scenario
@@ -22,12 +23,12 @@ def hook_rename_scenario(scenario, *_):
 
 def clear_browser_etc():
 
-    browser = world.per_scenario.get('browser')
+    browser = per.scenario.get('browser')
     if browser is not None:
         browser.delete_all_cookies()
         browser.quit()
 
-    del world.per_scenario
+    del per.scenario
 
 
 @after.each_scenario
@@ -38,4 +39,4 @@ def clear_per_scenario(*_):
 @after.outline
 def clear_per_iteration(*_):
     clear_browser_etc()
-    world.per_scenario = {}
+    set_per_scenario(_)

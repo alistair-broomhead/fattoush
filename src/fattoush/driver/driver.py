@@ -11,7 +11,13 @@ the active WebDriver instance.
 from selenium.webdriver import Remote
 from lettuce.core import Step, Scenario
 from lettuce import world
-from .sauce import Sauce, Local
+
+from fattoush import namespace
+from fattoush.driver.sauce import (
+    Sauce, 
+    Local,
+)
+from fattoush.namespace import per
 
 
 class Driver(Remote):
@@ -39,21 +45,21 @@ class Driver(Remote):
         :rtype : Driver
         """
 
-        if 'browser' not in world.per_scenario:
-            world.per_scenario['browser'] = cls(
-                world.fattoush,
+        if 'browser' not in per.scenario:
+            per.scenario['browser'] = cls(
+                namespace.config,
                 cls._scenario(step_or_scenario),
             )
 
-        return world.per_scenario['browser']
+        return per.scenario['browser']
 
     @classmethod
     def got_instance(cls):
-        return 'browser' in world.per_scenario
+        return 'browser' in per.scenario
 
     @classmethod
     def kill_instance(cls):
-        browser = world.per_scenario.pop('browser', None)
+        browser = per.scenario.pop('browser', None)
 
         if browser is not None:
             browser.quit()

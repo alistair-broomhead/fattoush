@@ -38,26 +38,16 @@ Licensed under the MIT License; you may not use this file except in compliance w
 You may obtain a copy of the License at http://opensource.org/licenses/MIT.
 """
 
-# Bringing the step and world names into this namespace makes it
-# easier to replace them at some future point.
-# noinspection PyUnresolvedReferences
-from lettuce import step as step_, world
-
-import fattoush.decorators.step
-
 from fattoush.config import VERSION
-from fattoush.driver import Driver
-from fattoush.util import (
-    retry,
-    with_wd_from_step,
+from fattoush.decorators.step import (
+    screenshot as step,
+    without_step as step_plain,
+    with_wd as step_with_wd,
+    just_wd as step_just_wd,
 )
-
-
-def step(regex):
-    define = step_(regex)
-
-    def _inner(fn):
-        decorated = fattoush.decorators.step.screenshot(fn)
-        return define(decorated)
-
-    return _inner
+from fattoush.driver import Driver
+from fattoush.namespace import (
+    per,
+    world,
+)
+from fattoush.util import retry
