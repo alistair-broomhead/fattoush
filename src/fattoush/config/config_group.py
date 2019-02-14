@@ -359,10 +359,16 @@ class FattoushConfigGroup(object):
             raise IndexError('There are no webdriver configs against '
                              'which to run lettuce.')
 
-        if self.parallel == 'webdriver':
-            self._run_parallel()
-        else:
-            self._run_series()
+        runner = (
+            self._run_parallel if self.parallel == 'webdriver' else
+            self._run_series
+        )
+
+        return sum(
+            result.scenarios_ran - result.scenarios_passed
+            for result in runner()
+            if result.features_passed < result.features_ran
+        )
 
     def _run_series(self):
         """

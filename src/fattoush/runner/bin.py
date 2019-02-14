@@ -10,7 +10,12 @@ This script uses fattoush to run lettuce
 
 def console():
     from fattoush.config import FattoushConfigGroup
-    FattoushConfigGroup.from_cli_args().run()
+
+    config = FattoushConfigGroup.from_cli_args()
+    failures = config.run()
+
+    if failures:
+        raise SystemExit(failures)
 
 
 if __name__ == '__main__':
