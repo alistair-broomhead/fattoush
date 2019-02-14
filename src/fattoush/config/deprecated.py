@@ -7,7 +7,7 @@ import packaging.version
 from fattoush.config.version import VERSION as _CURRENT
 
 
-class VersionedDeprication(Warning):
+class VersionedDeprecation(Warning):
     template = "?!?"
     warning = DeprecationWarning
 
@@ -22,12 +22,12 @@ class VersionedDeprication(Warning):
         return cls.warning(message)
 
 
-class NowDeprecated(VersionedDeprication):
+class NowDeprecated(VersionedDeprecation):
     template = "Deprecated since {from} (current: {current}): {reason}"
     warning = DeprecationWarning
 
 
-class SoonDeprecated(VersionedDeprication):
+class SoonDeprecated(VersionedDeprecation):
     template = "Will be deprecated in {from} (current: {current}): {reason}"
     warning = PendingDeprecationWarning
 
@@ -43,12 +43,12 @@ class FromVersion(object):
     def later(self):
         return SoonDeprecated(self.version, self.reason)
 
-    def check(self, stacklevel=3):
+    def check(self, stack_level=3):
         if _CURRENT >= self.version:
             raise self.now()
 
         with _always_warn():
-            warnings.warn(self.later(), stacklevel=stacklevel)
+            warnings.warn(self.later(), stacklevel=stack_level)
 
     def __enter__(self):
         self.check()
@@ -63,6 +63,7 @@ class FromVersion(object):
             fn(*args, **kwargs)
 
         return _inner
+
 
 @contextlib.contextmanager
 def _always_warn():

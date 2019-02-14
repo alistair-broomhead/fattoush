@@ -5,9 +5,12 @@
 """
 Hooks that run before and after scenarios
 """
-from fattoush.namespace import per
+from lettuce import (
+    after,
+    before,
+)
 
-from lettuce import after, before, world
+from fattoush.namespace import per
 
 
 @before.each_scenario

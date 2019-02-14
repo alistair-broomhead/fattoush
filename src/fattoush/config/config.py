@@ -17,6 +17,10 @@ class FattoushConfig(object):
 
     @fattoush.util.flatmap(selenium.webdriver.DesiredCapabilities, to_cls=dict)
     def desired(cap_name, cap):
+        """
+        :type cap_name:    str
+        :type cap:         str
+        """
         if isinstance(cap, dict):
             browser_name = cap.get("browserName")
 
@@ -26,8 +30,10 @@ class FattoushConfig(object):
 
                 yield cap_name_lower, cap
 
-                if (cap_name_lower != browser_name and
-                    cap_name_lower == browser_name.lower):
+                if (
+                    cap_name_lower != browser_name and
+                    cap_name_lower == browser_name.lower
+                ):
                     yield browser_name, cap
 
     desired.update({
@@ -45,7 +51,6 @@ class FattoushConfig(object):
                 yield option.capabilities["browserName"], cls
         except (NameError, KeyError):
             pass
-
 
     def _augment_xunit_filename(self):
         index = self.index
@@ -100,17 +105,17 @@ class FattoushConfig(object):
             self.browser["description"] = to_string(
                 self.browser["description"])
 
-    def __init__(self, index, browser, server, lettuce):
+    def __init__(self, index, browser, server, lettuce_cfg):
         """
-        :param index: int
-        :param browser: dict
-        :param server: dict
-        :param lettuce: dict
+        :type index: int
+        :type browser: dict
+        :type server: dict
+        :type lettuce_cfg: dict
         """
         self.index = index
         self.server = server
         self.browser = browser.copy()
-        self.run_args = lettuce
+        self.run_args = lettuce_cfg
 
         self._augment_xunit_filename()
         self._augment_server()
@@ -120,8 +125,6 @@ class FattoushConfig(object):
             self.browser['capabilities'],
             surround=False,
         )
-
-
 
     @property
     def command_executor(self):

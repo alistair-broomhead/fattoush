@@ -8,8 +8,8 @@ import fattoush
 from fattoush.config import FattoushConfig
 
 
-@fattoush.step_plain(u'Given I pass desired capabilites of "(.*)"')
-def given_i_pass_desired_capabilites_of(capabilities_json):
+@fattoush.step_plain(u'Given I pass desired capabilities of "(.*)"')
+def given_i_pass_desired_capabilities_of(capabilities_json):
     fattoush.per.scenario['capabilities'] = json.loads(capabilities_json)
 
 
@@ -21,7 +21,7 @@ def when_fattoush_creates_a_configurations_from_this():
             'capabilities': fattoush.per.scenario['capabilities']
         },
         server={},
-        lettuce=mock.MagicMock(),
+        lettuce_cfg=mock.MagicMock(),
     )
 
 

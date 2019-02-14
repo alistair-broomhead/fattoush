@@ -3,7 +3,7 @@
 # You may obtain a copy of the License at http://opensource.org/licenses/MIT.
 
 """
-Interface between Sacue Labs and lettuce driver
+Interface between Sauce Labs and lettuce driver
 """
 from abc import ABCMeta, abstractmethod
 import base64
@@ -21,10 +21,6 @@ class SauceInterface(object):
 
     @abstractmethod
     def fail_session(self):
-        pass
-
-    @abstractmethod
-    def set_session_configuration(self, **conf):
         pass
 
     @abstractmethod
@@ -47,8 +43,8 @@ class AbstractSauceBase(SauceInterface):
 
     def __init__(self, config, browser):
         """
-        :param config: fattoush.config.FattoushConfig
-        :param browser: fattoush.driver.driver.Driver
+        :type config: fattoush.config.FattoushConfig
+        :type browser: fattoush.driver.driver.Driver
         """
 
         # Bind copy of class defaults to instance

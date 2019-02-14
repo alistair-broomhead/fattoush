@@ -3,6 +3,8 @@ import functools
 import os.path
 import time
 
+import future.utils
+
 LOGFILE_NAME_TEMPLATE = (
     "{datetime:%Y%m%d_%H%M%S.%f}{parent_name} - {sentence}.{ext}"
 )
@@ -78,6 +80,7 @@ def filename_in_created_dir(dir_name, step, ext, **kwargs):
 
 def try_map(fn, args_iterable):
     ex = None
+    failures = []
 
     for args in args_iterable:
         try:
@@ -85,12 +88,25 @@ def try_map(fn, args_iterable):
         except Exception as ex:
             print(ex)
 
+            failures.append((ex, args))
+
     if ex is not None:
-        raise
+        msg = '\n\t'.join(
+            ['Failed to map {} against all args:'.format(fn)] +
+            [
+                '{}({}) failed with {}'.format(fn, args, ex)
+                for ex, args in failures
+            ]
+        )
+
+        _runtime_from(msg, ex)
 
 
+def _runtime_from(msg, cause):
+    return future.utils.raise_from(RuntimeError(msg), cause)
 
-def retry(times=1, wait=0, catch=Exception):
+
+def retry(times=1, wait=0, catch=RuntimeError):
 
     def decorator(fn):
         @functools.wraps(fn)
@@ -104,7 +120,10 @@ def retry(times=1, wait=0, catch=Exception):
                     time.sleep(wait)
 
             if ex is not None:
-                raise
+                msg = '{}(*{}. **{}) failed {} times'.format(
+                    fn, args, kwargs, times
+                )
+                _runtime_from(msg, ex)
 
         return _inner
 
@@ -119,17 +138,16 @@ def _attrs(obj, include_private=False):
 
         yield name, getattr(obj, name)
 
-
 def flatmap(obj, to_cls=None):
     """
     Flatmap a decorated function over a namespace
 
-    In the absense of `to_cls` this creates a generator. With
+    In the absence of `to_cls` this creates a generator. With
     `to_cls` that generator will be exhausted into an instance
     of that class.
 
     This is useful for creating say a dictionary within a
-    class' namespace without poluting it with extra mess
+    class' namespace without polluting it with extra mess
     """
     def iter_(fn):
         for name, value in _attrs(obj):

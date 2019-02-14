@@ -11,6 +11,7 @@ import os
 import argparse
 
 
+# noinspection SpellCheckingInspection
 def add_lettuce_group(parser):
     """
     :type parser: argparse.ArgumentParser
@@ -71,7 +72,7 @@ def add_lettuce_group(parser):
 
     # Inspection assumes os.curdir is the project directory, in
     # practice it should be the working directory when fattoush is run.
-    #noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences
     group.add_argument('base_path',
                        default=os.path.join(os.curdir, 'features'),
                        nargs='?')

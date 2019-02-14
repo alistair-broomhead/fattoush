@@ -3,7 +3,7 @@ Hooks that run before and after steps
 """
 import functools
 
-from lettuce import world, before, after
+from lettuce import after
 
 from fattoush.namespace import per
 

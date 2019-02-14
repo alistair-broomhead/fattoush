@@ -6,18 +6,14 @@ specified webdriver configuration, whither in saucelabs or local.
 """
 import copy
 import json
-import urlparse
 import multiprocessing
-
+import urlparse
 from os import environ, path
 
 from jsonschema import validate
-from lettuce import world
 
-from fattoush import util
-from fattoush import namespace
-from fattoush.config import deprecated
-from fattoush.config import config
+from fattoush import namespace, util
+from fattoush.config import config, deprecated
 from fattoush.runner.parsing import parse_args
 
 
@@ -288,7 +284,7 @@ class FattoushConfigGroup(object):
         creates a config object that can be referred to throughout
         fattoush.
 
-        :param options: Namespace
+        :type options: Namespace
         """
         if options.print_schema:
             print(json.dumps(self.schema, indent=2, sort_keys=True))
@@ -372,7 +368,7 @@ class FattoushConfigGroup(object):
         """
         Runs lettuce against each browser configuration one at a time
 
-        :param self: fattoush.config.FattoushConfigGroup
+        :type self: fattoush.config.FattoushConfigGroup
         """
         return list(
             util.try_map(
@@ -386,7 +382,7 @@ class FattoushConfigGroup(object):
         Runs lettuce against all the browser configurations at the same
         time in different processes.
 
-        :param self: fattoush.config.FattoushConfigGroup
+        :type self: fattoush.config.FattoushConfigGroup
         """
         multiprocessing.Pool().map(
             _run_kwargs,
@@ -425,17 +421,17 @@ def _run_kwargs(kwargs):
 
 def run_single(index, browser, server, lettuce):
     """
-    :param index: int
-    :param browser: dict
-    :param server: dict
-    :param lettuce: dict
+    :type index: int
+    :type browser: dict
+    :type server: dict
+    :type lettuce: dict
     """
 
     fattoush_config = config.FattoushConfig(
         index=index,
         browser=browser,
         server=server,
-        lettuce=lettuce,
+        lettuce_cfg=lettuce,
     )
     namespace.config = fattoush_config
 

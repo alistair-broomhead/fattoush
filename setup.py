@@ -8,13 +8,14 @@ import sys
 
 
 sys.path.insert(0, path.join(path.dirname(__file__), 'src'))
-import fattoush
+try:
+    import fattoush
+except ImportError:
+    class fattoush:
+        """ Placeholder for tox """
 
+        VERSION = "Placeholder for tox"
 
-def read_lines(file_name):
-    pth = path.join(path.dirname(__file__), file_name)
-    with open(pth) as handle:
-        return handle.readlines()
 
 setup(
     name='Fattoush',
@@ -25,11 +26,22 @@ setup(
     description="A delicious testing framework",
     license='MIT',
     url='https://github.com/alistair-broomhead/fattoush',
-    #download_url='https://github.com/mindcandy/fattoush/zipball/master',
     long_description=fattoush.__doc__,
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    install_requires=read_lines("requirements.txt"),
+    install_requires=[
+        "argparse>=1.2.1",
+        "future",
+        "jsonschema>=2.3.0",
+        "lettuce==0.2.19",
+        "packaging",
+        "selenium>=3.0.0",
+    ],
+    extras_require={
+        "fast": [
+            "python-Levenshtein",
+        ]
+    },
     include_package_data=True,
     entry_points={
         'console_scripts': [

@@ -4,9 +4,9 @@ Feature: Browser Configuration
   testing environment
 
 
-Scenario Outline: Flat desired capabilties
+Scenario Outline: Flat desired capabilities
 
-  Given I pass desired capabilites of "<caps>"
+  Given I pass desired capabilities of "<caps>"
   When fattoush creates a configurations from this
   Then the configuration name is "<name>"
 
@@ -16,8 +16,8 @@ Scenario Outline: Flat desired capabilties
     | browser=googlechrome;foo=bar  | {"browser": "googlechrome", "foo": "bar"} |
 
 
-Scenario: Nested desired capabilties
+Scenario: Nested desired capabilities
 
-  Given I pass desired capabilites of "{"browser": "googlechrome", "foo": {"bar" : ["baz"]}}"
+  Given I pass desired capabilities of "{"browser": "googlechrome", "foo": {"bar" : ["baz"]}}"
   When fattoush creates a configurations from this
   Then it does not crash

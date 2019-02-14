@@ -8,14 +8,13 @@ The driver class shall be a subclass of WebDriver with a classmethod
 the active WebDriver instance.
 """
 
+from lettuce.core import Scenario, Step
 from selenium.webdriver import Remote
-from lettuce.core import Step, Scenario
-from lettuce import world
 
 from fattoush import namespace
 from fattoush.driver.sauce import (
-    Sauce, 
     Local,
+    Sauce,
 )
 from fattoush.namespace import per
 
@@ -66,8 +65,8 @@ class Driver(Remote):
 
     def __init__(self, config, name):
         """
-        :param config: fattoush.config.FattoushConfig
-        :param scenario: Scenario
+        :type config: fattoush.config.FattoushConfig
+        :type name: str
         """
         self.fattoush_config = config
 

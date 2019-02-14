@@ -59,7 +59,7 @@ Development
 -----------
 
 It is recommended to work with this in a virtual environment. To run the tests you will need
- to fill out your saucelabs credentials in you local checkout of [chrome_sauce_mac.json](test/chrome_sauce_mac.json) (making sure not to commit these changes):
+ to fill out your saucelabs credentials in you local checkout of [chrome_sauce_mac.json](/test/chrome_sauce_mac.json) (making sure not to commit these changes):
  
     pip install -e .
     pip install nose
