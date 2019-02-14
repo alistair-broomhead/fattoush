@@ -3,7 +3,7 @@ import logging
 import sys
 import time
 
-import lettuce
+from lettuce import step
 
 from selenium.common.exceptions import WebDriverException
 
@@ -40,10 +40,9 @@ class Step(object):
         self._decorated = decorated
 
     def decorator(self, fn, step_regex):
-        step = lettuce.step(step_regex)
         decorated = Decorated(fn, self._decorated)
 
-        return step(decorated)
+        return step(step_regex)(decorated)
 
     def __call__(self, step_regex):
 
@@ -111,16 +110,21 @@ def without_step(definition, _, *args, **kwargs):
 
 
 @Step
-def screenshot(definition, step, *args, **kwargs):
-    with _screenshot_after(step):
-        return definition, (step, ) + args, kwargs
+def just_hashes(definition, step_obj, *args, **kwargs):
+    return definition, (step_obj.hashes,) + args, kwargs
+
+
+@Step
+def screenshot(definition, step_obj, *args, **kwargs):
+    with _screenshot_after(step_obj):
+        return definition, (step_obj,) + args, kwargs
 
 
 @screenshot.then
-def with_wd(definition, step, *args, **kwargs):
-    wd = Driver.instance(step)
+def with_wd(definition, step_obj, *args, **kwargs):
+    wd = Driver.instance(step_obj)
 
-    return definition, (step, wd) + args, kwargs
+    return definition, (step_obj, wd) + args, kwargs
 
 
 @with_wd.then
